@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -37,25 +39,25 @@ export class UsersService {
 
   findAll(role?: 'INTERN' | 'ENGINEER' | 'ADMIN') {
     if (role) {
-      return this.users.filter((user) => user.role === role);
+      const rolesArray = this.users.filter((user) => user.role === role);
+
+      if (rolesArray.length === 0) {
+        throw new NotFoundException(`No users found with role ${role}`);
+      }
+      return rolesArray;
     }
     return this.users;
   }
 
-  findById(id: string) {
-    const user = this.users.find((user) => user.id === parseInt(id));
-    if (user) {
-      return user;
+  findById(id: number) {
+    const user = this.users.find((user) => user.id === id);
+    if (!user) {
+      throw new NotFoundException(`User not found`);
     }
-    console.log('000', id);
-    throw new Error(`User with id ${id} not found`);
+    return user;
   }
 
-  create(user: {
-    name: string;
-    email: string;
-    role: 'INTERN' | 'ENGINEER' | 'ADMIN';
-  }) {
+  create(user: CreateUserDto) {
     const existingUser = this.users.find((u) => user.email === u.email);
     if (existingUser) {
       throw new Error(`User with email ${user.email} already exists`);
@@ -69,16 +71,9 @@ export class UsersService {
     return newUser;
   }
 
-  update(
-    id: string,
-    updateUser: {
-      name?: string;
-      email?: string;
-      role?: 'INTERN' | 'ENGINEER' | 'ADMIN';
-    },
-  ) {
+  update(id: number, updateUser: UpdateUserDto) {
     this.users = this.users.map((user) => {
-      if (user.id === parseInt(id)) {
+      if (user.id === id) {
         return { ...user, ...updateUser };
       }
       return user;
@@ -87,11 +82,10 @@ export class UsersService {
     return this.findById(id);
   }
 
-  delete(id: string) {
-    console.log('000', id);
+  delete(id: number) {
     const removedUser = this.findById(id);
 
-    this.users = this.users.filter((user) => user.id !== parseInt(id));
+    this.users = this.users.filter((user) => user.id !== id);
 
     return removedUser;
   }
