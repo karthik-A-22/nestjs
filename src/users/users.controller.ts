@@ -13,17 +13,20 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { QueryUserDto } from './dto/query-user.dto';
+import { ParseObjectIdPipe } from '@nestjs/mongoose';
+import { ObjectId } from 'mongoose';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly UsersService: UsersService) {}
   @Get()
-  findAll(@Query('role') role?: 'INTERN' | 'ENGINEER' | 'ADMIN') {
-    return this.UsersService.findAll(role);
+  findAll(@Query() QueryUserDto: QueryUserDto) {
+    return this.UsersService.findAll(QueryUserDto);
   }
 
   @Get(':id')
-  findById(@Param('id', ParseIntPipe) id: number) {
+  findById(@Param('id', ParseObjectIdPipe) id: ObjectId) {
     return this.UsersService.findById(id);
   }
 
@@ -37,15 +40,20 @@ export class UsersController {
 
   @Patch(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseObjectIdPipe) id: ObjectId,
     @Body(ValidationPipe)
     updateUser: UpdateUserDto,
   ) {
     return this.UsersService.update(id, updateUser);
   }
 
+  @Patch(':id/toggle-active')
+  toggleActiveStatus(@Param('id', ParseObjectIdPipe) id: ObjectId) {
+    return this.UsersService.toggleActiveStatus(id);
+  }
+
   @Delete(':id')
-  delete(@Param('id', ParseIntPipe) id: number) {
+  delete(@Param('id', ParseObjectIdPipe) id: ObjectId) {
     return this.UsersService.delete(id);
   }
 }

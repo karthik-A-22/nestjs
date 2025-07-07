@@ -1,4 +1,12 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
@@ -6,10 +14,24 @@ export class CreateUserDto {
   name: string;
 
   @IsEmail()
+  @IsNotEmpty()
   email: string;
 
+  @IsString()
+  @MinLength(6, { message: 'Password must be at least 6 characters' })
+  @IsNotEmpty()
+  password: string;
+
   @IsEnum(['INTERN', 'ENGINEER', 'ADMIN'], {
-    message: 'Valid role required',
+    message: 'Role must be one of INTERN, ENGINEER, or ADMIN',
   })
   role: 'INTERN' | 'ENGINEER' | 'ADMIN';
+
+  @IsOptional()
+  @IsPhoneNumber('IN', { message: 'Invalid phone number' })
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  department?: string;
 }
