@@ -1,91 +1,51 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { User } from './schemas/users.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class UsersService {
-  private users = [
-    {
-      id: 1,
-      name: 'Alice Johnson',
-      email: 'alice.johnson@example.com',
-      role: 'INTERN',
-    },
-    {
-      id: 2,
-      name: 'Bob Smith',
-      email: 'bob.smith@example.com',
-      role: 'ENGINEER',
-    },
-    {
-      id: 3,
-      name: 'Charlie Lee',
-      email: 'charlie.lee@example.com',
-      role: 'ADMIN',
-    },
-    {
-      id: 4,
-      name: 'Diana Cruz',
-      email: 'diana.cruz@example.com',
-      role: 'INTERN',
-    },
-    {
-      id: 5,
-      name: 'Ethan Wright',
-      email: 'ethan.wright@example.com',
-      role: 'ENGINEER',
-    },
-  ];
+  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  findAll(role?: 'INTERN' | 'ENGINEER' | 'ADMIN') {
-    if (role) {
-      const rolesArray = this.users.filter((user) => user.role === role);
-
-      if (rolesArray.length === 0) {
-        throw new NotFoundException(`No users found with role ${role}`);
-      }
-      return rolesArray;
-    }
-    return this.users;
+  async findAll(role?: 'INTERN' | 'ENGINEER' | 'ADMIN') {
+    const query = role ? { role } : {};
+    const rolesArray = await this.userModel.find(query);
+    return rolesArray;
   }
 
-  findById(id: number) {
-    const user = this.users.find((user) => user.id === id);
+  async findById(id: number) {
+    const user = await this.userModel.findById(id).exec();
     if (!user) {
       throw new NotFoundException(`User not found`);
     }
     return user;
   }
 
-  create(user: CreateUserDto) {
-    const existingUser = this.users.find((u) => user.email === u.email);
+  async create(user: CreateUserDto) {
+    const existingUser = await this.userModel.findOne({ email: user.email });
     if (existingUser) {
-      throw new Error(`User with email ${user.email} already exists`);
+      throw new Error(`User already exists`);
     }
-    const userHighestId = [...this.users].sort((a, b) => b.id - a.id);
-    const newUser = {
-      id: userHighestId[0].id + 1,
-      ...user,
-    };
-    this.users.push(newUser);
+    const newUser = new this.userModel(user);
+    await newUser.save();
+
     return newUser;
   }
 
-  update(id: number, updateUser: UpdateUserDto) {
-    this.users = this.users.map((user) => {
-      if (user.id === id) {
-        return { ...user, ...updateUser };
-      }
-      return user;
+  async update(id: number, updateUser: UpdateUserDto) {
+    const updatedUser = await this.userModel.findByIdAndUpdate(id, updateUser, {
+      new: true,
     });
-
-    return this.findById(id);
+    if (!updatedUser) {
+      throw new NotFoundException(`User not found`);
+    }
+    return updatedUser;
   }
 
   delete(id: number) {
-    const removedUser = this.findById(id);
-
-    this.users = this.users.filter((user) => user.id !== id);
+    const removedUser = this.userModel.findByIdAndDelete(id);
 
     return removedUser;
   }
