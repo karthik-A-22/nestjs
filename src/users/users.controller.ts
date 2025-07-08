@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -16,10 +17,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { ObjectId } from 'mongoose';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly UsersService: UsersService) {}
+
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll(@Query() QueryUserDto: QueryUserDto) {
     return this.UsersService.findAll(QueryUserDto);

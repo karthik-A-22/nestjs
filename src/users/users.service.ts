@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -28,7 +29,7 @@ export class UsersService {
       query.department = filters.department;
     }
 
-    const rolesArray = await this.userModel.find({ query });
+    const rolesArray = await this.userModel.find(query);
     return rolesArray;
   }
 
@@ -45,10 +46,19 @@ export class UsersService {
     if (existingUser) {
       throw new Error(`User already exists`);
     }
-    const newUser = new this.userModel(user);
+
+    // 🔐 Hash the password before saving
+    const hashedPassword = await bcrypt.hash(user.password, 10); // 10 salt rounds
+    const newUser = new this.userModel({
+      ...user,
+      password: hashedPassword,
+    });
+
     await newUser.save();
 
-    return newUser;
+    // ✅ Optionally remove password from response
+    const { password, ...result } = newUser.toObject();
+    return result;
   }
 
   async update(id: ObjectId, updateUser: UpdateUserDto) {
@@ -77,5 +87,9 @@ export class UsersService {
     await user.save();
 
     return user;
+  }
+
+  async findByEmail(email: string) {
+    return this.userModel.findOne({ email });
   }
 }
