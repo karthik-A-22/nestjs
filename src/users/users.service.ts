@@ -3,7 +3,7 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from './schemas/users.schema';
+import { User } from '../schemas/users.schema';
 import { Model, ObjectId } from 'mongoose';
 import { QueryUserDto } from './dto/query-user.dto';
 

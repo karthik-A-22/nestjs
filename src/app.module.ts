@@ -4,10 +4,22 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import configuration from './config/configuration';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost/task-manager'),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
+    }),
+    MongooseModule.forRootAsync({
+      useFactory: (config: ConfigService) => ({
+        uri: config.get<string>('DATABASE_URL'),
+      }),
+      inject: [ConfigService],
+    }),
     UsersModule,
     AuthModule,
   ],
