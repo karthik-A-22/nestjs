@@ -18,13 +18,16 @@ import { QueryUserDto } from './dto/query-user.dto';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { ObjectId } from 'mongoose';
 import { AuthGuard } from '@nestjs/passport';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RolesGuard } from 'src/guards/roles.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly UsersService: UsersService) {}
 
-  @UseGuards(AuthGuard('jwt'))
   @Get()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
   findAll(@Query() QueryUserDto: QueryUserDto) {
     return this.UsersService.findAll(QueryUserDto);
   }
@@ -35,6 +38,8 @@ export class UsersController {
   }
 
   @Post()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
   create(
     @Body(ValidationPipe)
     user: CreateUserDto,
@@ -43,6 +48,7 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard('jwt'))
   update(
     @Param('id', ParseObjectIdPipe) id: ObjectId,
     @Body(ValidationPipe)
@@ -52,11 +58,15 @@ export class UsersController {
   }
 
   @Patch(':id/toggle-active')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
   toggleActiveStatus(@Param('id', ParseObjectIdPipe) id: ObjectId) {
     return this.UsersService.toggleActiveStatus(id);
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
   delete(@Param('id', ParseObjectIdPipe) id: ObjectId) {
     return this.UsersService.delete(id);
   }
