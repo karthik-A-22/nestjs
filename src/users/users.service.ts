@@ -1,15 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from '../schemas/users.schema';
-import { Model, ObjectId } from 'mongoose';
+import { User } from '../schemas/user.schema';
+import { Model, ObjectId, Types } from 'mongoose';
 import { QueryUserDto } from './dto/query-user.dto';
+import { UserSettings } from 'src/schemas/userSettings.schema';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(UserSettings.name)
+    private userSettingsModel: Model<UserSettings>,
+  ) {}
 
   async findAll(filters: QueryUserDto) {
     const query: any = {};
@@ -29,36 +38,40 @@ export class UsersService {
       query.department = filters.department;
     }
 
-    const rolesArray = await this.userModel.find(query);
+    const rolesArray = await this.userModel.find(query).populate('settings');
     return rolesArray;
   }
 
   async findById(id: ObjectId) {
-    const user = await this.userModel.findById(id).exec();
+    const user = await this.userModel.findById(id).populate('settings').exec();
     if (!user) {
       throw new NotFoundException(`User not found`);
     }
     return user;
   }
 
-  async create(user: CreateUserDto) {
+  async create({ settings, ...user }: CreateUserDto) {
     const existingUser = await this.userModel.findOne({ email: user.email });
     if (existingUser) {
-      throw new Error(`User already exists`);
+      throw new ConflictException('User already exists');
     }
 
-    // 🔐 Hash the password before saving
-    const hashedPassword = await bcrypt.hash(user.password, 10); // 10 salt rounds
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+
+    let settingsId: Types.ObjectId | undefined = undefined;
+    if (settings) {
+      const newSettings = new this.userSettingsModel(settings);
+      const savedNewSettings = await newSettings.save();
+      settingsId = savedNewSettings._id;
+    }
+
     const newUser = new this.userModel({
       ...user,
       password: hashedPassword,
+      settings: settingsId,
     });
 
-    await newUser.save();
-
-    // ✅ Optionally remove password from response
-    const { password, ...result } = newUser.toObject();
-    return result;
+    return newUser.save();
   }
 
   async update(id: ObjectId, updateUser: UpdateUserDto) {

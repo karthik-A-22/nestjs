@@ -1,4 +1,6 @@
+import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -6,7 +8,22 @@ import {
   IsPhoneNumber,
   IsString,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
+
+export class CreateUserSettingsDto {
+  @IsOptional()
+  @IsBoolean()
+  receiveNotifications?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  receiveEmails?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  receiveSMS?: boolean;
+}
 
 export class CreateUserDto {
   @IsString()
@@ -34,4 +51,9 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   department?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateUserSettingsDto)
+  settings?: CreateUserSettingsDto;
 }
