@@ -4,12 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from '../schemas/user.schema';
 import { Model, ObjectId, Types } from 'mongoose';
-import { QueryUserDto } from './dto/query-user.dto';
+import { QueryUserDto } from './dtos/query-user.dto';
 import { UserSettings } from 'src/schemas/userSettings.schema';
 
 @Injectable()

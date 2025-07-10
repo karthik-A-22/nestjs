@@ -12,9 +12,9 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { QueryUserDto } from './dto/query-user.dto';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
+import { QueryUserDto } from './dtos/query-user.dto';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { ObjectId } from 'mongoose';
 import { AuthGuard } from '@nestjs/passport';
