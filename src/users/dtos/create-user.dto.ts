@@ -39,10 +39,10 @@ export class CreateUserDto {
   @IsNotEmpty()
   password: string;
 
-  @IsEnum(['INTERN', 'ENGINEER', 'ADMIN'], {
-    message: 'Role must be one of INTERN, ENGINEER, or ADMIN',
+  @IsEnum(['DOCTOR', 'PATIENT', 'ADMIN'], {
+    message: 'Role must be one of DOCTOR, PATIENT, or ADMIN',
   })
-  role: 'INTERN' | 'ENGINEER' | 'ADMIN';
+  role: 'PATIENT' | 'DOCTOR' | 'ADMIN';
 
   @IsOptional()
   @IsPhoneNumber('IN', { message: 'Invalid phone number' })
