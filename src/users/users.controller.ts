@@ -33,6 +33,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UseGuards(AuthGuard('jwt'))
   findById(@Param('id', ParseObjectIdPipe) id: ObjectId) {
     return this.UsersService.findById(id);
   }

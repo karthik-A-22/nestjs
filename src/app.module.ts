@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PostsModule } from './posts/posts.module';
 import configuration from './config/configuration';
+import { AuditMiddleware } from './audit/audit.middleware';
+import { PatientsModule } from './patients/patients.module';
 
 @Module({
   imports: [
@@ -24,8 +26,13 @@ import configuration from './config/configuration';
     UsersModule,
     AuthModule,
     PostsModule,
+    PatientsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuditMiddleware).forRoutes('*'); // 🔍 applies middleware to all routes
+  }
+}
